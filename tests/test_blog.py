@@ -3,7 +3,7 @@ from flaskr.db import get_db
 
 def test_index(client, auth):
     response = client.get('/')
-    assert b'Log Out' in response.data
+    assert b'Log In' in response.data
     assert b"Register" in response.data
 
     auth.login()
@@ -21,7 +21,7 @@ def test_index(client, auth):
 ))
 def test_login_required(client, path):
     response = client.post(path)
-    assert response.header['Location'] == 'http://localhost/auth/login'
+    assert response.headers['Location'] == 'http://localhost/auth/login'
 
 def test_author_required(app, client, auth):
     with app.app_context():
@@ -55,15 +55,15 @@ def test_create(client, auth, app):
 def test_update(client, auth, app):
     auth.login()
     assert client.get('/1/update').status_code == 200
-    client.post('/1/update', data={'title': 'update', 'body': ''})
+    client.post('/1/update', data={'title': 'updated', 'body': ''})
 
     with app.app_context():
         db = get_db()
         post = db.execute('SELECT * FROM post WHERE id = 1').fetchone()
-        assert post['title'] == 'update'
+        assert post['title'] == 'updated'
     
 @pytest.mark.parametrize('path', (
-    '/create/',
+    '/create',
     '/1/update',
 ))
 def test_create_update_validate(client, auth, path):
@@ -74,7 +74,7 @@ def test_create_update_validate(client, auth, path):
 def test_delete(client, auth, app):
     auth.login()
     response = client.post('/1/delete')
-    assert response.headers['Location'] == 'http://localhost'
+    assert response.headers['Location'] == 'http://localhost/'
 
     with app.app_context():
         db = get_db()
